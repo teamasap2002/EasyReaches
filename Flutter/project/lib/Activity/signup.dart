@@ -14,6 +14,7 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  bool isloading = false;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -43,16 +44,13 @@ class _SignUpState extends State<SignUp> {
                 child: SignInButton(Buttons.googleDark,
                     text: "Sign up with Google", onPressed: () {
                   try {
-                    signInWithGoogle();
                     if(isLogin){
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const NavigationMenu()));
                     } else{
-                      SnackBar(
-                        content: Text("Please Login"),
-                      );
+                        signInWithGoogle();
                     }
                   } catch (e) {
                     const SnackBar(

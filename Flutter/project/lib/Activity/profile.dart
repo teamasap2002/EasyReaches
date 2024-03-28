@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project/Activity/edit.dart';
 import 'package:project/Activity/signup.dart';
 import 'package:project/services/auth.dart';
@@ -9,17 +10,8 @@ class Profile extends StatefulWidget {
   @override
   State<Profile> createState() => _ProfileState();
 }
-FirebaseAuth _auth = FirebaseAuth.instance;
 class _ProfileState extends State<Profile> {
-  @override
-  void initState() {
-    super.initState();
-    _auth.authStateChanges().listen((event) {
-      setState(() {
-        cUser = event;
-      });
-    });
-  }
+  User? user = FirebaseAuth.instance.currentUser;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,183 +22,211 @@ class _ProfileState extends State<Profile> {
 
         ),
       ),
-      resizeToAvoidBottomInset: false,
+      // resizeToAvoidBottomInset: false,
       body: SingleChildScrollView(
         child: SafeArea(
-          child: Container(
-            padding: const EdgeInsets.only(left: 26, top: 20, right: 26),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20.h,horizontal: 25.w),
             child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Row(
-                  children: <Widget>[
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                      ),
-                      child: getProfileImage(),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Hey!",
-                          style:
-                          TextStyle(fontWeight: FontWeight.bold,
-                              color: Color.fromRGBO(0, 191, 166, 1),
-                              fontSize: 20),
-                        ),
-                        Text(
-                          cUser?.displayName??"Edit your Profile",
-                          style: TextStyle(fontSize: 20, color: Color.fromRGBO(0, 191, 166, 1), fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                const Row(
-                  children: [
-                    Text(
-                      "Account",
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const Divider(
-                  height: 15,
-                  thickness: 2,
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  children: [
-                     const Icon(
-                      Icons.edit,
-                      size: 25,
-                      color: Color.fromRGBO(0, 191, 166, 1),
-                    ),
-                    const SizedBox(width: 20,),
-                    const Text("Edit Profile", style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 140,),
-
-                    IconButton(
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>EditProfile()));
-                          },
-                          icon: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 25,
-                            color: Color.fromRGBO(0, 191, 166, 1),
+                StreamBuilder(
+                  stream: FirebaseFirestore.instance.collection("Users").doc("${user?.uid}").snapshots(),
+                  builder: (context, snapshot) {
+                    if(snapshot.connectionState == ConnectionState.waiting){
+                      return const Center(child: CircularProgressIndicator(),);
+                    }
+                    return Row(
+                      children: <Widget>[
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 4,
+                              //color: Theme.of(context).scaffoldBackgroundColor
+                              color: const Color.fromRGBO(0, 191, 166, 1),
+                            ),
+                            boxShadow:[
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color: Colors.black.withOpacity(0.3),
+                              )
+                            ],
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image:NetworkImage(snapshot.data?['profilePhoto']??"https://cdn-icons-png.flaticon.com/128/1144/1144760.png"),
+                            ),
                           ),
-                    ),
+                        ),
+                        SizedBox(
+                          width: 10.w,
+                        ),
 
-                  ],
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hey!",
+                              style:
+                              TextStyle(fontWeight: FontWeight.bold,
+                                  color: const Color.fromRGBO(0, 191, 166, 1),
+                                  fontSize: 20.sp),
+                            ),
+                            Text(
+                               snapshot.data?['name'] ??
+                              "Edit your Profile",
+                              style: TextStyle(fontSize: 20.sp, color: const Color
+                                  .fromRGBO(0, 191, 166, 1), fontWeight: FontWeight
+                                  .bold),
+                            ),
+                          ],
+                        )
+                      ],
+                    );
+                  }
                 ),
-                const SizedBox(height: 20,),
+                SizedBox(
+                  height: 30.h,
+                ),
+                Text(
+                  "Account",
+                  style: TextStyle(
+                      fontSize: 20.sp, fontWeight: FontWeight.bold),
+                ),
+                Divider(
+                  height: 15.h,
+                  thickness: 2.r,
+                ),
+                SizedBox(
+                  height: 10.h,
+                ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                   const Icon(
-                      Icons.location_on,
-                      size: 25,
-                      color: Color.fromRGBO(0, 191, 166, 1),
+                    Icon(
+                      Icons.edit,
+                      size: 25.r,
+                      color: const Color.fromRGBO(0, 191, 166, 1),
                     ),
-                    const SizedBox(width: 20,),
-                    const Text("Saved Address", style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 100,),
+                    // SizedBox(width: 20.w,),
+                    Text("Edit Profile", style: TextStyle(fontSize: 20.sp)),
+                    // SizedBox(width: 115.w),
+
                     IconButton(
-                      onPressed: (){},
-                      icon:const Icon(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (
+                            context) => EditProfile()));
+                      },
+                      icon: Icon(
                         Icons.arrow_forward_ios,
-                        size: 25,
-                        color: Color.fromRGBO(0, 191, 166, 1),
+                        size: 25.r,
+                        color: const Color.fromRGBO(0, 191, 166, 1),
                       ),
                     ),
 
                   ],
                 ),
-                const SizedBox(
-                  height: 40,
-                ),
-                const Row(
+                SizedBox(height: 20.h,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "My Activity",
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                    Icon(
+                      Icons.location_on,
+                      size: 25.r,
+                      color: const Color.fromRGBO(0, 191, 166, 1),
                     ),
+                    // SizedBox(width: 20.w,),
+                    Text("Saved Address", style: TextStyle(fontSize: 20.sp)),
+                    // SizedBox(width: 79.w,),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 25.r,
+                        color: const Color.fromRGBO(0, 191, 166, 1),
+                      ),
+                    ),
+
                   ],
                 ),
-                const Divider(
-                  height: 15,
-                  thickness: 2,
+                SizedBox(
+                  height: 30.h,
                 ),
-                const SizedBox(
-                  height: 10,
+                Text(
+                  "My Activity",
+                  style: TextStyle(
+                      fontSize: 20.sp, fontWeight: FontWeight.bold),
+                ),
+                Divider(
+                  height: 15.h,
+                  thickness: 2.r,
+                ),
+                SizedBox(
+                  height: 10.h,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      onPressed: (){},
-                      icon: const Icon(
+                      onPressed: () {},
+                      icon: Icon(
                         Icons.check_circle_outline,
-                        size: 25,
-                        color: Color.fromRGBO(0, 191, 166, 1),
+                        size: 25.r,
+                        color: const Color.fromRGBO(0, 191, 166, 1),
                       ),
                     ),
 
-                    const SizedBox(width: 20,),
-                    const Text("Used Services", style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 100,),
-                    const Icon(
+                    // SizedBox(width: 20.w,),
+                    Text("Used Services", style: TextStyle(fontSize: 20.sp)),
+                    // SizedBox(width: 85.w,),
+                    Icon(
                       Icons.arrow_forward_ios,
-                      size: 25,
-                      color: Color.fromRGBO(0, 191, 166, 1),
+                      size: 25.r,
+                      color: const Color.fromRGBO(0, 191, 166, 1),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40,),
-                const Row(
-                  children: [
-                    Text(
-                      "Notifications",
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                SizedBox(height: 30.h,),
+                Text(
+                  "Notifications",
+                  style: TextStyle(
+                      fontSize: 20.sp, fontWeight: FontWeight.bold),
                 ),
-                const Divider(
-                  height: 15,
-                  thickness: 2,
+                Divider(
+                  height: 15.h,
+                  thickness: 2.r,
                 ),
-                const SizedBox(
-                  height: 10,
+                SizedBox(
+                  height: 10.h,
                 ),
                 buildNotificationOptionRow("New for you", true),
 
-                const SizedBox(
-                  height: 50,
+                SizedBox(
+                  height: 50.h,
                 ),
                 Center(
                   child: OutlinedButton(
-                    child: Text("SIGN OUT", style: TextStyle(
-                        fontSize: 16, letterSpacing: 2.2, color: Colors.black)),
                     style: OutlinedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(0, 191, 166, 1),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)))
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(const Radius
+                                .circular(10)
+                                .r))
                     ),
                     onPressed: () {
                       signOut();
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder)=>SignUp()));
+                      Navigator.pushReplacement(
+                          context, MaterialPageRoute(builder: (builder) =>
+                          SignUp()));
                     },
+                    child: Text("SIGN OUT", style: TextStyle(
+                        fontSize: 16.sp,
+                        letterSpacing: 2.2,
+                        color: Colors.black)),
                   ),
                 ),
               ],
@@ -219,21 +239,21 @@ class _ProfileState extends State<Profile> {
 
   Row buildNotificationOptionRow(String title, bool isActive) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Icon(
+        Icon(
           Icons.circle_notifications,
-          size: 25,
-          color: Color.fromRGBO(0, 191, 166, 1),
+          size: 25.r,
+          color: const Color.fromRGBO(0, 191, 166, 1),
         ),
-        const SizedBox(width: 20,),
+        // SizedBox(width: 20.w,),
         Text(
           title,
-          style: const TextStyle(
-              fontSize: 20,
+          style: TextStyle(
+              fontSize: 20.sp,
               color: Colors.black),
         ),
-        const SizedBox(width: 120,),
+        // SizedBox(width: 120.w,),
         Transform.scale(
             scale: 0.7,
             child: CupertinoSwitch(
@@ -243,55 +263,4 @@ class _ProfileState extends State<Profile> {
       ],
     );
   }
-
-// GestureDetector buildAccountOptionRow(BuildContext context, String title, String iconn) {
-//   return GestureDetector(
-//     onTap: () {
-//       showDialog(
-//           context: context,
-//           builder: (BuildContext context) {
-//             return AlertDialog(
-//               title: Text(title),
-//               content: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   Text("Option 1"),
-//                   Text("Option 2"),
-//                   Text("Option 3"),
-//                 ],
-//               ),
-//               // actions: [
-//               //   FlatButton(
-//               //       onPressed: () {
-//               //         Navigator.of(context).pop();
-//               //       },
-//               //       child: Text("Close")),
-//               // ],
-//             );
-//           });
-//     },
-//     child: Padding(
-//       padding: const EdgeInsets.symmetric(vertical: 8.0),
-//       child: Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//         children: [
-//           Text(
-//             title,
-//             style: TextStyle(
-//               fontSize: 18,
-//               fontWeight: FontWeight.w500,
-//               color: Colors.grey[600],
-//             ),
-//           ),
-//           Icon(
-//             Icons.arrow_forward_ios,
-//             color: Colors.grey,
-//           ),
-//         ],
-//       ),
-//     ),
-//   );
-
-//}
 }
-

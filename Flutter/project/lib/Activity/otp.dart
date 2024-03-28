@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otp_timer_button/otp_timer_button.dart';
-import 'package:project/Activity/Home.dart';
 import 'package:project/navigation_menu.dart';
 import 'package:project/widgets/uihelper.dart';
 
@@ -18,6 +19,9 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   int resentToken = 0;
   TextEditingController otpController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  var user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -52,28 +56,69 @@ class _OTPScreenState extends State<OTPScreen> {
                 height: 50.h,
               ),
               UiHelper.CustomButton(() async {
-                try {
-                  PhoneAuthCredential credential =
-                      await PhoneAuthProvider.credential(
-                          verificationId: widget.verificationId,
-                          smsCode: otpController.text.toString());
-                  FirebaseAuth.instance
-                      .signInWithCredential(credential)
-                      .then((value) {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const NavigationMenu()));
-                  });
-                } catch (e) {
-                  SnackBar(content: Text("Failed SignIn"));
+                final user = _auth.currentUser;
+                final FirebaseFirestore db = FirebaseFirestore.instance;
+                if(user!=null){
+                  await db.collection('Users').doc(user.uid).set({
+                    'uid': user.uid,
+                    'name': "",
+                    'gender': "",
+                    'phoneno': widget.phone,
+                    'email':  "",
+                    'profilePhoto':
+                    "https://cdn-icons-png.flaticon.com/128/1144/1144760.png",
+                  }) ;
                 }
-              }, "Verify", const Color.fromRGBO(108, 99, 255, 1), Colors.white),
+
+
+                // await doc.update({'uid':_auth.currentUser?.uid});
+                // final DocumentSnapshot snapshot = await users.doc(user?.uid).get();
+                // final userFields = snapshot.data() as Map<String,dynamic>?;
+                // if (user != null){
+                //   users.doc(user.uid).set({
+                //     'uid': user.uid,
+                //     'name': userFields?['name'] ?? "",
+                //     'gender': userFields?['gender']??"",
+                //     'phoneno': userFields?['phoneno'] ?? widget.phone,
+                //     'email': userFields?['email'] ?? "",
+                //     'profilePhoto': userFields?['profilePhoto'] ??
+                //         "https://cdn-icons-png.flaticon.com/128/1144/1144760.png",
+                //   });
+                // }
+                // // if (user != null){
+                // //   users.doc(user.uid).set({
+                // //     'uid': user.uid,
+                // //     'name': "",
+                // //     'gender': userFields?['gender']??"",
+                // //     'phoneno': userFields?['phoneno'] ?? widget.phone,
+                // //     'email': userFields?['email'] ?? "",
+                // //     'profilePhoto': userFields?['profilePhoto'] ??
+                // //         "https://cdn-icons-png.flaticon.com/128/1144/1144760.png",
+                // //   });
+                // }
+                // final FirebaseStorage _storage = FirebaseStorage.instance;
+                // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+                // Reference ref = _storage.ref().child('Users').child(_auth.currentUser!.uid);
+                PhoneAuthCredential credential = PhoneAuthProvider.credential(
+                            verificationId: widget.verificationId,
+                            smsCode: otpController.text.toString()
+                        );
+                       await FirebaseAuth.instance.signInWithCredential(credential).then((value){
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const NavigationMenu()));
+                        });
+
+
+                    }, "Verify", const Color.fromRGBO(108, 99, 255, 1),
+                        Colors.white
+                  ),
               SizedBox(
                 height: 10.h,
               ),
               Text(
-                "Didn't recieve any code?",
+                "Didn't receive any code?",
                 style: TextStyle(fontSize: 20.sp, color: Colors.grey),
               ),
               OtpTimerButton(

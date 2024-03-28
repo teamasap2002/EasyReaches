@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,8 +14,10 @@ class PhoneAuth extends StatefulWidget {
 }
 
 class _PhoneAuthState extends State<PhoneAuth> {
+
   TextEditingController phoneController = TextEditingController();
   String countryCode = "+91";
+
   String getPhoneNumber(){
       return phoneController.text;
   }
@@ -124,11 +127,12 @@ class _PhoneAuthState extends State<PhoneAuth> {
                     FirebaseAuth.instance.verifyPhoneNumber(
                         phoneNumber: phoneNum,
                         verificationCompleted:
-                            (PhoneAuthCredential credential) {},
+                            (PhoneAuthCredential credential){},
                         verificationFailed: (FirebaseAuthException e) {
                           // const SnackBar(content: null,)
                         },
                         codeSent: (String verificationId, int? resentToken,) {
+
                           Navigator.push(
                               context,
                               MaterialPageRoute(

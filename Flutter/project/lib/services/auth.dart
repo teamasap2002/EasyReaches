@@ -1,15 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn();
 
 //sign in
 bool isLogin = false;
-User? cUser;
 Future<void> checkLogin()async {
   _auth.authStateChanges().listen((User? user) {
     if(user !=null){
@@ -18,13 +16,6 @@ Future<void> checkLogin()async {
   });
 }
 
-getProfileImage(){
-  if(_auth.currentUser?.photoURL!=null){
-    return Image.network(_auth.currentUser!.photoURL.toString(), fit: BoxFit.cover,);
-  } else{
-    return const Icon(Icons.account_circle_rounded, size: 70,);
-  }
-}
 Future<User?> signInWithGoogle() async{
   final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount!.authentication;
@@ -37,6 +28,21 @@ Future<User?> signInWithGoogle() async{
   final userCredential = await _auth.signInWithCredential(credential);
 
   final User? user = userCredential.user;
+  if(user!=null){
+    if(userCredential.additionalUserInfo!.isNewUser){
+      await _firestore.collection('Users').doc(user.uid).set(
+        {
+            'uid': user.uid,
+            'name': user.displayName,
+            'phoneno' : user.phoneNumber??"+91xxxxxxxxxx",
+            'email': user.email,
+            'profilePhoto' : user.photoURL??"https://cdn-icons-png.flaticon.com/128/1144/1144760.png",
+            'gender': ""
+        }
+      );
+    }
+    checkLogin();
+  }
 
   assert(!user!.isAnonymous);
   assert(await user!.getIdToken()!=null);
@@ -44,7 +50,7 @@ Future<User?> signInWithGoogle() async{
   final User? currentUser = await _auth.currentUser;
 
   assert(currentUser!.uid == user?.uid);
-  print(user);
+  // print(user);
   return user;
 }
 
